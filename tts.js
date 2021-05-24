@@ -133,7 +133,7 @@ function unbanUser(username, callback) {
  * @param {Function} callback 실행 결과 콜백
  */
 function setVoice(voicename, callback) {
-    if (["default", "polly"].indexOf(voicename) !== -1) {
+    if (["default", "polly", "sce"].indexOf(voicename) !== -1) {
         window.def_voice = voicename;
         localStorage.setItem("def_voice", voicename);
         callback(true, "기본 보이스가 변경되었습니다 - " + voicename);
@@ -669,6 +669,33 @@ function playText(string, speed, pitch, ignoreKor, nickname, voicename, banable 
             obj.msg = '<speak><prosody rate="' + parseInt(speed * 100) + '%" pitch="' + parseInt(pitch * 100 - 100) + '%">' + string + '</prosody></speak>';
             obj.volume = window.volume / 100;
             window.speechQueue.push(obj);
+        } else if (voicename === "sce") {
+            string = replaceChosung(string);
+            const lastChar = string[string.length-1];
+            if(!(lastChar === "." || lastChar === "!" || lastChar === "~" || lastChar === "?")) {
+                string += ".";
+            }
+            const obj = {
+                type: "sce",
+                from: nickname,
+                msg: string,
+                pitch: pitch,
+                speed: speed
+            };
+            if(banable) {
+                obj.pitch = 1;
+                obj.speed = 1;
+            }
+            obj.onstart = function (event) {
+                if (typeof obj.from == "undefined" || obj.from === "") obj.from = "Unknown";
+                if (banable && obj.from !== "SYSTEM") document.getElementById("last_read").innerHTML += "<i class='xi-ban' style='cursor: pointer;' onclick='banUser(\"" + obj.from + "\", displayResultFromUI)'></i>&nbsp;<b>" + obj.from + "</b>:" + obj.msg + "<br />\n";
+                else document.getElementById("last_read").innerHTML += "<i class='xi-ban' style='color: #666' onclick='return false;'></i>&nbsp;<b>" + obj.from + "</b>:" + obj.msg + "<br />\n";
+            };
+            obj.onend = function (event) {
+                if (window.debugmode) console.log("msg read event");
+                if (window.debugmode) console.log(event);
+            };
+            window.speechQueue.push(obj);
         }
 
         parseQueue();
@@ -783,6 +810,9 @@ function parseQueue() {
         console.debug("Amazon Polly - " + obj.msg);
         window.kathy.SetVolume(obj.volume);
         window.kathy.Speak(obj.msg);
+    } else if (obj.type === "sce") {
+        console.debug("SCE TTS - " + obj.msg);
+        window.sce.Speak(obj);
     } else {
         console.warn("ERROR - Type " + obj.type + " is not supported.");
     }

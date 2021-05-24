@@ -11,6 +11,7 @@
     <script src="https://rawcdn.githack.com/Lastorder-DC/tapic/5.1.3/dist/tapic.min.js"></script>
     <script src="https://rawcdn.githack.com/blueimp/JavaScript-MD5/v2.10.0/js/md5.min.js"></script>
     <script src="./ChattyKathy.js"></script>
+    <script src="./SceTTS.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js" integrity="sha512-wV7Yj1alIZDqZFCUQJy85VN+qvEIly93fIQAN7iqDFCPEucLCeNFz4r35FCo9s6WrpdDQPi80xbljXB8Bjtvcg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous"></script>
     <script src="./notifications.js"></script>
@@ -36,9 +37,13 @@
                 <label for="polly_access_key">아마존 액세스 키</label>
                 <input type="text" class="form-control" id="polly_access_key" placeholder="Amazon Access Key">
             </div>
+            <div class="form-group">
+                <label for="sce_url">SCE-TTS URL</label>
+                <input type="password" class="form-control" id="sce_url" placeholder="SCE TTS URL">
+            </div>
             <div class="form-group row">
                 <div class="offset-sm-2 col-sm-10">
-                    <button type="button" class="btn btn-primary" onclick="localStorage.setItem('polly_access_id', document.getElementById('polly_access_id').value);localStorage.setItem('polly_access_key', document.getElementById('polly_access_key').value);location.reload()">
+                    <button type="button" class="btn btn-primary" onclick="localStorage.setItem('sce_url', document.getElementById('sce_url').value);localStorage.setItem('polly_access_id', document.getElementById('polly_access_id').value);localStorage.setItem('polly_access_key', document.getElementById('polly_access_key').value);location.reload()">
                         정보 저장
                     </button>
                 </div>
@@ -149,6 +154,7 @@
 
         document.getElementById('polly_access_id').value = localStorage.getItem("polly_access_id");
         document.getElementById('polly_access_key').value = localStorage.getItem("polly_access_key");
+        document.getElementById('sce_url').value = localStorage.getItem("sce_url");
         const awsCredentials = new AWS.Credentials(localStorage.getItem("polly_access_id"), localStorage.getItem("polly_access_key"));
         const settings = {
             awsCredentials: awsCredentials,
@@ -158,6 +164,12 @@
         };
 
         window.kathy = new ChattyKathy(settings);
+        if(localStorage.getItem("sce_url")) {
+            window.sce = new SceTTS({
+                url: localStorage.getItem("sce_url"),
+                cacheSpeech: false,
+            })
+        }
         window.users = [];
         window.speechQueue = [];
         
